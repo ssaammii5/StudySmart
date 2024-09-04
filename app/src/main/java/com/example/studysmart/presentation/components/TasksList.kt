@@ -9,7 +9,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -24,18 +26,21 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.studysmart.R
 import com.example.studysmart.domain.model.Task
+import com.example.studysmart.util.Priority
 
 fun LazyListScope.tasksList(
     sectionTitle: String,
     emptyListText: String,
-    tasks: List<Task>
-){
+    tasks: List<Task>,
+    onTaskCardClick: (Int?) -> Unit,
+    onCheckBoxClick: (Task) -> Unit
+) {
     item {
         Text(
             text = sectionTitle,
             style = MaterialTheme.typography.bodySmall,
             modifier = Modifier.padding(12.dp)
-            )
+        )
     }
     if (tasks.isEmpty()) {
         item {
@@ -60,29 +65,47 @@ fun LazyListScope.tasksList(
 
         }
     }
+    items(tasks) { task ->
+        TaskCard(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+            task = task,
+            onCheckBoxClick = {onCheckBoxClick(task)},
+            onClick = {onTaskCardClick(task.taskId)}
+        )
+    }
 }
 
 @Composable
 private fun TaskCard(
     modifier: Modifier = Modifier,
-    task: Task
-){
-    ElevatedCard (
-        modifier = modifier.clickable {  }
-    ){
-        Row (
-            modifier= Modifier
+    task: Task,
+    onCheckBoxClick: () -> Unit,
+    onClick: () -> Unit
+) {
+    ElevatedCard(
+        modifier = modifier.clickable { onClick() }
+    ) {
+        Row(
+            modifier = Modifier
                 .fillMaxWidth()
                 .padding(8.dp),
             verticalAlignment = Alignment.CenterVertically
-        ){
+        ) {
+            TaskCheckBox(
+                isComplete = task.isCompleted,
+                borderColor = Priority.fromInt(task.priority).color,
+                onCheckBoxClick = onCheckBoxClick
+            )
+
+            Spacer(modifier = Modifier.width(10.dp))
+
             Column {
                 Text(
-                    text =task.title,
+                    text = task.title,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.titleMedium,
-                    textDecoration = if(task.isCompleted){
+                    textDecoration = if (task.isCompleted) {
                         TextDecoration.LineThrough
                     } else TextDecoration.None
                 )
